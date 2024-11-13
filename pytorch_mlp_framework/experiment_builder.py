@@ -26,6 +26,7 @@ class ExperimentBuilder(nn.Module):
         weight_decay_coefficient,
         use_gpu,
         continue_from_epoch=-1,
+        learning_rate = 1e-3,
     ):
         """
         Initializes an ExperimentBuilder object. Such an object takes care of running training and evaluation of a deep net
@@ -40,6 +41,7 @@ class ExperimentBuilder(nn.Module):
         :param weight_decay_coefficient: A float indicating the weight decay to use with the adam optimizer.
         :param use_gpu: A boolean indicating whether to use a GPU or not.
         :param continue_from_epoch: An int indicating whether we'll start from scrach (-1) or whether we'll reload a previously saved model of epoch 'continue_from_epoch' and continue training from there.
+        :param learning_rate: default to 1e-3, can be updated for experiments with different learning rates.
         """
         super(ExperimentBuilder, self).__init__()
 
@@ -61,6 +63,7 @@ class ExperimentBuilder(nn.Module):
         self.train_data = train_data
         self.val_data = val_data
         self.test_data = test_data
+        self.learning_rate = learning_rate
 
         print("System learnable parameters")
         num_conv_layers = 0
@@ -79,7 +82,7 @@ class ExperimentBuilder(nn.Module):
         print("Total number of linear layers", num_linear_layers)
 
         self.optimizer = optim.Adam(
-            self.parameters(), amsgrad=False, weight_decay=weight_decay_coefficient
+            self.parameters(), amsgrad=False, weight_decay=weight_decay_coefficient, lr=self.learning_rate
         )
         self.learning_rate_scheduler = optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer, T_max=num_epochs, eta_min=0.00002
